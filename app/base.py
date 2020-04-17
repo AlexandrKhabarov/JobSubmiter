@@ -19,3 +19,11 @@ def create_app(mode):
         raise UnrecognizedMode(mode)
 
     return app
+
+
+def setup_celery(celery, app):
+    celery.conf.update({
+        "broker_url": app.config['CELERY_BROKER_URL'],
+        "result_backend": app.config['CELERY_RESULT_BACKEND']
+    })
+    return celery
