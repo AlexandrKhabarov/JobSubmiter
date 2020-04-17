@@ -1,0 +1,61 @@
+version: '3.2'
+services:
+  app:
+    container_name: app
+    hostname: app
+    image: app
+    ports:
+      - 5010:80
+    depends_on:
+      - celery
+      - jenkins
+    environment:
+      REDIS_DB: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+  redis:
+    container_name: redis
+    image: redis
+    hostname: redis
+
+  celery:
+    container_name: celery
+    image: celery
+    hostname: celery
+    depends_on:
+      - redis
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/
+
+  jenkins:
+    container_name: jenkins
+    hostname: jenkins
+    image: jenkinsci/blueocean
+    environment:
+      DOCKER_HOST: tcp://docker:2376
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_TLS_VERIFY: 1
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+
+  docker:
+    container_name: docker
+    hostname: docker
+    privileged: true
+    image: docker:dind
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+
+volumes:
+  jenkins-docker-certs:
+  jenkins-data:
+
+
