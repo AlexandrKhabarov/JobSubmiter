@@ -6,5 +6,7 @@ celery_app = Celery(__name__)
 
 @celery_app.task
 def submit_async_job(args):
-    server = jenkins.Jenkins('http://localhost:8080')
-    server.build_job(name=args['name'], token=args['token'], parameters=args['parameters'])
+    username = args['username']
+    password = args['password']
+    server = jenkins.Jenkins('http://jenkins:8080', username, password)
+    server.build_job(name=args['name'], parameters=args['parameters'])
