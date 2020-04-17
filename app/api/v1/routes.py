@@ -8,4 +8,4 @@ blueprint = Blueprint("v1", __name__)
 api = Api(blueprint)
 
 api.add_resource(Submit, '/submit')
-api.add_resource(Status, '/status/<string:job_id>')
+api.add_resource(Status, '/status/<string:job_name>')
