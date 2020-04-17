@@ -3,6 +3,8 @@ MAINTAINER AlexanderKhabarov
 
 RUN apk update
 
+WORKDIR /project
+
 COPY . .
 
 RUN pip install --upgrade pip
