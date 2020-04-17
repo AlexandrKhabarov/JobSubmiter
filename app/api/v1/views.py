@@ -1,13 +1,19 @@
-from flask.views import MethodView
+from flask_restful import Resource
+from flask_restful.reqparse import RequestParser
 
 
-class Submit(MethodView):
+class Submit(Resource):
+    def __init__(self):
+        self.parser = RequestParser()
+        self.parser.add_argument("username", type=str)
+        self.parser.add_argument("password", type=str)
+
     @classmethod
     def post(cls):
         return "SUCCESS!"
 
 
-class Status(MethodView):
+class Status(Resource):
     @classmethod
     def get(cls, job_id):
         return f"{job_id} info"
