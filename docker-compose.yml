@@ -7,17 +7,8 @@ services:
     ports:
       - 5010:80
     depends_on:
-      - redis
-      - jenkins
     environment:
-      REDIS_DB: 1
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-
-  redis:
-    container_name: redis
-    image: redis
-    hostname: redis
+      JENKINS_HOST: http://jenkins:8080
 
   jenkins:
     container_name: jenkins

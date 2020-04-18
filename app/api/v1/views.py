@@ -1,38 +1,71 @@
-import jenkins
+import json
+
+import requests
 from flask import request
 from flask_restful import Resource
 from flask_restful.reqparse import RequestParser
 
-from app.task.task import submit_async_job
+from app.utils.jenkins import Jenkins
 
 
-class Submit(Resource):
+class Build(Resource):
     parser = RequestParser()
-    parser.add_argument("username", type=str, required=True)
-    parser.add_argument("password", type=str, required=True)
     parser.add_argument("job_name", type=str, required=True)
     parser.add_argument("parameters", type=dict, default={})
 
     @classmethod
     def post(cls):
-        args = cls.parser.parse_args(request)
-        submit_async_job.apply_async(kwargs={"args": args})
+        authorization = request.authorization
 
-        return {"status": "submitted"}, 202
+        username = authorization.username
+        token = authorization.password
+
+        args = cls.parser.parse_args(request)
+
+        job_name = args['job_name']
+        parameters = args['parameters']
+
+        jenkins = Jenkins(username, token)
+        response = jenkins.build_job(job_name, parameters)
+
+        response = cls._create_response(response)
+
+        return response
+
+    @classmethod
+    def _create_response(cls, response):
+        try:
+            response.raise_for_status()
+            content = json.loads(response.text)
+            res = ({"Status": content['result']}, response.status_code)
+
+        except requests.RequestException as e:
+            res = ({"Error": str(e)}, e.response.status_code)
+
+        return res
 
 
 class Status(Resource):
     @classmethod
     def get(cls, job_name):
+        authorization = request.authorization
+
+        username = authorization.username
+        token = authorization.password
+
+        jenkins = Jenkins(username, token)
+        response = jenkins.job_info(job_name)
+        response = cls._create_response(response)
+        return response
+
+    @classmethod
+    def _create_response(cls, response):
         try:
-            server = jenkins.Jenkins('http://localhost:8080', "admin", "admin")
-            job_info = server.get_job_info(job_name)
-            last_build = job_info['lastBuild']
-            if last_build is None:
-                raise jenkins.JenkinsException(f"Job {job_name} have not been built")
-            current_build_number = last_build['number']
-            build_info = server.get_build_info(job_name, current_build_number)
-        except jenkins.JenkinsException as e:
-            return {"message": str(e)}, 404
-        else:
-            return {"job_name": job_name, "status": build_info['result']}, 200
+            response.raise_for_status()
+            content = json.loads(response.text)
+            res = ({"Status": content['result']}, response.status_code)
+
+        except requests.RequestException as e:
+            res = ({"Error": str(e)}, e.response.status_code)
+
+        return res
