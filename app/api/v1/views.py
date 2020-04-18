@@ -70,14 +70,14 @@ class Status(Resource):
             if e.response.status_code in [401, 403]:
                 res = ({"message": 'Authentication failed'}, response.status_code)
             elif e.response.status_code == 404:
-                res = ({"message": 'Requested item could not be found'}, response.status_code)
+                res = ({"message": 'Requested job could not be found'}, response.status_code)
             elif e.response.status_code >= 500:
                 res = ({"message": 'Something went wrong with Jenkins'}, response.status_code)
             else:
                 res = ({"message": f'Client Error for job: {job_name}'}, response.status_code)
         except Timeout:
             res = ({"message": 'Request Timeout'}, response.status_code)
-        except ValueError:
+        except KeyError:
             res = ({"message": f"Could not parse JSON info for job: {job_name}"}, 500)
 
         return res
