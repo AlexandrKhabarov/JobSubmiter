@@ -25,7 +25,7 @@ class BaseView(Resource):
                 res = ({"message": f'Client Error for job: {job_name}'}, response.status_code)
         except Timeout:
             res = ({"message": 'Request Timeout'}, response.status_code)
-        except KeyError:
+        except (KeyError, ValueError):
             res = ({"message": f"Could not parse JSON info for job: {job_name}"}, 500)
 
         return res

@@ -1,6 +1,6 @@
 from flask import Flask
 
-from app.api.v1.routes import blueprint
+from app.api.v1.urls import blueprint
 from app.utils.jenkins import Jenkins
 from config.config import Mode, DevelopmentConfig, ProductionConfig, TestConfig
 from app.exceptions import UnrecognizedMode
