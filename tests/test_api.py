@@ -104,3 +104,27 @@ class TestStatusApi(TestApi):
         expected_status_code = 200
         expected_message = {"job_name": job_name, "status": "RUNNING"}
         self._assert_response(response, expected_status_code, expected_message)
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_authentication_error(self):
+        pass
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_not_found_error(self):
+        pass
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_jenkins_error(self):
+        pass
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_client_error(self):
+        pass
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_timeout_error(self):
+        pass
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_parsing_error(self):
+        pass
