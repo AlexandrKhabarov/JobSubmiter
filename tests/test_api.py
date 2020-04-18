@@ -126,17 +126,19 @@ class TestBuildApi(TestApi):
 
     @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
     def test_build_job(self):
-        response = self.open_with_authorization(data=json.dumps({"job_name": "job"}))
+        job_name = "job"
+        response = self.open_with_authorization(data=json.dumps({"job_name": job_name}))
         expected_status_code = 201
-        expected_message = {"message": "SUBMITTED"}
+        expected_message = {"job_name": job_name, "status": "SUBMITTED"}
         self._assert_response(response, expected_status_code, expected_message)
 
     @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
     def test_build_job_with_params(self):
-        response = self.open_with_authorization(data=json.dumps({"job_name": "job_with_parameters",
+        job_name = "job_with_parameters"
+        response = self.open_with_authorization(data=json.dumps({"job_name": job_name,
                                                                  "parameters": {"param": "value"}}))
         expected_status_code = 201
-        expected_message = {"message": "SUBMITTED"}
+        expected_message = {"job_name": job_name, "status": "SUBMITTED"}
         self._assert_response(response, expected_status_code, expected_message)
 
 
