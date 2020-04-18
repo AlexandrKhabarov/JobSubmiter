@@ -1,4 +1,5 @@
 import base64
+import functools
 import json
 import unittest
 from unittest.mock import patch
@@ -44,41 +45,6 @@ class TestApi(unittest.TestCase):
         app = init(Mode.TEST)
         self.client = app.test_client()
 
-    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
-    def test_build_job(self):
-        response = self._open_with_authorization(path="/api/v1/build",
-                                                 method="POST",
-                                                 data=json.dumps({"job_name": "job1"}),
-                                                 headers={"Content-Type": "application/json"})
-        expected_status_code = 201
-        expected_message = {"message": "SUBMITTED"}
-        self._assert_response(response, expected_status_code, expected_message)
-
-        response = self._open_with_authorization(path="/api/v1/build",
-                                                 method="POST",
-                                                 data=json.dumps({"job_name": "job2", "parameters": {"param": "value"}}),
-                                                 headers={"Content-Type": "application/json"})
-        expected_status_code = 201
-        expected_message = {"message": "SUBMITTED"}
-        self._assert_response(response, expected_status_code, expected_message)
-
-    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
-    def test_job_status(self):
-        response = self._open_with_authorization(path="/api/v1/status/success", method="GET", )
-        expected_status_code = 200
-        expected_message = {"message": "SUCCESS"}
-        self._assert_response(response, expected_status_code, expected_message)
-
-        response = self._open_with_authorization(path="/api/v1/status/failed", method="GET")
-        expected_status_code = 200
-        expected_message = {"message": "FAILED"}
-        self._assert_response(response, expected_status_code, expected_message)
-
-        response = self._open_with_authorization(path="/api/v1/status/running", method="GET")
-        expected_status_code = 200
-        expected_message = {"message": "RUNNING"}
-        self._assert_response(response, expected_status_code, expected_message)
-
     def _open_with_authorization(self, path, method, data=None, headers=None):
         headers = headers or {}
         headers.update({'Authorization': f"Basic {base64.b64encode(b'name:pass').decode('utf8')}"})
@@ -89,3 +55,52 @@ class TestApi(unittest.TestCase):
     def _assert_response(self, actual_response, expected_status_code, expected_content):
         self.assertEqual(actual_response.status_code, expected_status_code)
         self.assertDictEqual(actual_response.json, expected_content)
+
+
+class TestBuildApi(TestApi):
+    open_with_authorization = functools.partialmethod(TestApi._open_with_authorization,
+                                                      path="/api/v1/build",
+                                                      method="POST",
+                                                      headers={"Content-Type": "application/json"})
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_build_job(self):
+        response = self.open_with_authorization(data=json.dumps({"job_name": "job1"}))
+        expected_status_code = 201
+        expected_message = {"message": "SUBMITTED"}
+        self._assert_response(response, expected_status_code, expected_message)
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_build_job_with_params(self):
+        response = self.open_with_authorization(data=json.dumps({"job_name": "job2", "parameters": {"param": "value"}}))
+        expected_status_code = 201
+        expected_message = {"message": "SUBMITTED"}
+        self._assert_response(response, expected_status_code, expected_message)
+
+
+class TestStatusApi(TestApi):
+    open_with_authorization = functools.partialmethod(TestApi._open_with_authorization, method="GET")
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_success_job_status(self):
+        job_name = "success"
+        response = self.open_with_authorization(path=f"/api/v1/status/{job_name}")
+        expected_status_code = 200
+        expected_message = {"job_name": job_name, "status": "SUCCESS"}
+        self._assert_response(response, expected_status_code, expected_message)
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_failed_job_status(self):
+        job_name = "failed"
+        response = self.open_with_authorization(path=f"/api/v1/status/{job_name}")
+        expected_status_code = 200
+        expected_message = {"job_name": job_name, "status": "FAILED"}
+        self._assert_response(response, expected_status_code, expected_message)
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_running_job_status(self):
+        job_name = "running"
+        response = self.open_with_authorization(path=f"/api/v1/status/{job_name}")
+        expected_status_code = 200
+        expected_message = {"job_name": job_name, "status": "RUNNING"}
+        self._assert_response(response, expected_status_code, expected_message)
