@@ -36,11 +36,10 @@ class Build(Resource):
     def _create_response(cls, response):
         try:
             response.raise_for_status()
-            content = json.loads(response.text)
-            res = ({"Status": content['result']}, response.status_code)
+            res = ({"message": "Submitted"}, response.status_code)
 
         except requests.RequestException as e:
-            res = ({"Error": str(e)}, e.response.status_code)
+            res = ({"message": str(e)}, e.response.status_code)
 
         return res
 
@@ -63,9 +62,9 @@ class Status(Resource):
         try:
             response.raise_for_status()
             content = json.loads(response.text)
-            res = ({"Status": content['result']}, response.status_code)
+            res = ({"status": content['result'] or "Running"}, response.status_code)
 
         except requests.RequestException as e:
-            res = ({"Error": str(e)}, e.response.status_code)
+            res = ({"message": str(e)}, e.response.status_code)
 
         return res

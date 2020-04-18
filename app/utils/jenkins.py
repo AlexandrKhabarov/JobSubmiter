@@ -5,8 +5,10 @@ import requests
 
 class Jenkins:
     _URL = ""
+
     _JOB_INFO = 'job/{job_name}/lastBuild/api/json'
-    _BUILD_JOB = 'job/{job_name}/buildWithParameters'
+    _BUILD_JOB = 'job/{job_name}/build'
+    _BUILD_JOB_WITH_PARAMETERS = 'job/{job_name}/buildWithParameters'
 
     def __init__(self, username, token):
         self.username = username
@@ -32,9 +34,11 @@ class Jenkins:
         return url
 
     def _create_build_job_url(self, job_name, parameters):
-        url = self._build_url(self._BUILD_JOB, job_name)
         if parameters:
+            url = self._build_url(self._BUILD_JOB_WITH_PARAMETERS, job_name)
             url = url + '?' + urlencode(parameters)
+        else:
+            url = self._build_url(self._BUILD_JOB, job_name)
         return url
 
     def _build_url(self, suffix, job_name):
