@@ -8,7 +8,19 @@ from requests import HTTPError, Timeout
 from app.utils.jenkins import Jenkins
 
 
+def authorization_header_required(f):
+    def decorator(*args, **kwargs):
+        if request.authorization is None:
+            res = ({"message": "The authorization failed because of missing Authorization header"}, 400)
+            return res
+        return f(*args, **kwargs)
+
+    return decorator
+
+
 class BaseView(Resource):
+    decorators = (authorization_header_required,)
+
     @classmethod
     def _try_build_response(cls, response, job_name):
         try:
@@ -44,10 +56,6 @@ class BuildView(BaseView):
     def post(cls):
         authorization = request.authorization
 
-        if authorization is None:
-            res = ({"message": "The authorization failed because of missing Authorization header"}, 400)
-            return res
-
         username = authorization.username
         token = authorization.password
 
@@ -70,13 +78,10 @@ class BuildView(BaseView):
 
 
 class StatusView(BaseView):
+
     @classmethod
     def get(cls, job_name):
         authorization = request.authorization
-
-        if authorization is None:
-            res = ({"message": "The authorization failed because of missing Authorization header"}, 400)
-            return res
 
         username = authorization.username
         token = authorization.password
