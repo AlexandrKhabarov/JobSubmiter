@@ -2,107 +2,14 @@ import base64
 import functools
 import json
 import unittest
-from unittest.mock import patch, MagicMock
-
-from requests import HTTPError, Timeout
+from unittest.mock import patch
 
 from app.base import init
 from config.config import Mode
+from tests.fixtures import MockedJenkins
 
 
-def mocked_response_factory(mapping):
-    mock = MagicMock()
-
-    for attr, value in mapping.items():
-        setattr(mock, attr, value)
-
-    return mock
-
-
-def raise_(ex):
-    raise ex
-
-
-class MockedJenkins:
-    def __init__(self, username, token):
-        self.username = username
-        self.token = token
-
-        self._expected_responses = {
-            "job": mocked_response_factory({
-                "status_code": 201,
-                "text": '{\n    "message": "SUBMITTED"\n}\n'
-            }),
-            "job_with_parameters": mocked_response_factory({
-                "status_code": 201,
-                "text": '{\n    "message": "SUBMITTED"\n}\n'
-            }),
-            "success_job": mocked_response_factory({
-                "status_code": 200,
-                "text": '{\n    "result": "SUCCESS"\n}\n'
-            }),
-            "failed_job": mocked_response_factory({
-                "status_code": 200,
-                "text": '{\n    "result": "FAILED"\n}\n'
-            }),
-            "running_job": mocked_response_factory({
-                "status_code": 200,
-                "text": '{\n    "result": null\n}\n'
-            }),
-            "authentication_error_job": mocked_response_factory({
-                "status_code": 401,
-                "raise_for_status": lambda: raise_(HTTPError(
-                    response=mocked_response_factory({
-                        "status_code": 401
-                    }))
-                ),
-            }),
-            "not_found_error_job": mocked_response_factory({
-                "status_code": 404,
-                "raise_for_status": lambda: raise_(HTTPError(
-                    response=mocked_response_factory({
-                        "status_code": 404
-                    }))
-                ),
-            }),
-            "jenkins_error_job": mocked_response_factory({
-                "status_code": 500,
-                "raise_for_status": lambda: raise_(HTTPError(
-                    response=mocked_response_factory({
-                        "status_code": 500
-                    }))
-                ),
-            }),
-            "client_error_job": mocked_response_factory({
-                "status_code": 405,
-                "raise_for_status": lambda: raise_(HTTPError(
-                    response=mocked_response_factory({
-                        "status_code": 405
-                    }))
-                ),
-            }),
-            "timeout_error_job": mocked_response_factory({
-                "status_code": 408,
-                "raise_for_status": lambda: raise_(Timeout())
-            }),
-            "parsing_error_job": mocked_response_factory({
-                "status_code": 200,
-                "text": '{\n    "status": "RUNNING"\n}\n'
-            }),
-            "missing_authorization_job": mocked_response_factory({
-                "status_code": 400,
-                "authorization": None
-            }),
-        }
-
-    def build_job(self, job_name, _):
-        return self._expected_responses[job_name]
-
-    def job_info(self, job_name):
-        return self._expected_responses[job_name]
-
-
-class TestApi(unittest.TestCase):
+class TestView(unittest.TestCase):
     def setUp(self) -> None:
         app = init(Mode.TEST)
         self.client = app.test_client()
@@ -119,8 +26,8 @@ class TestApi(unittest.TestCase):
         self.assertDictEqual(actual_response.json, expected_content)
 
 
-class TestBuildApi(TestApi):
-    open_with_authorization = functools.partialmethod(TestApi._open_with_authorization,
+class TestTriggerBuildView(TestView):
+    open_with_authorization = functools.partialmethod(TestView._open_with_authorization,
                                                       path="/api/v1/build",
                                                       method="POST",
                                                       headers={"Content-Type": "application/json"})
@@ -143,8 +50,8 @@ class TestBuildApi(TestApi):
         self._assert_response(response, expected_status_code, expected_message)
 
 
-class TestStatusApi(TestApi):
-    open_with_authorization = functools.partialmethod(TestApi._open_with_authorization, method="GET")
+class TestFetchBuildStatusView(TestView):
+    open_with_authorization = functools.partialmethod(TestView._open_with_authorization, method="GET")
 
     @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
     def test_success_job_status(self):
