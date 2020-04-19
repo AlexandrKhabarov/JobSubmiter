@@ -8,6 +8,8 @@ services:
       - 5010:80
     environment:
       JENKINS_HOST: http://jenkins:8080
+    volumes:
+      - ./logs:/projects/logs
 
   jenkins:
     container_name: jenkins
