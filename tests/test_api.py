@@ -47,7 +47,7 @@ class MockedJenkins:
             }),
             "running_job": mocked_response_factory({
                 "status_code": 200,
-                "text": '{\n    "result": "RUNNING"\n}\n'
+                "text": '{\n    "result": null\n}\n'
             }),
             "authentication_error_job": mocked_response_factory({
                 "status_code": 401,
