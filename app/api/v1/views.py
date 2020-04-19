@@ -22,10 +22,10 @@ class BaseView(Resource):
     decorators = (authorization_header_required,)
 
     @classmethod
-    def _try_build_response(cls, response, job_name):
+    def _build_response(cls, response, job_name):
         try:
             response.raise_for_status()
-            res = cls._build_response(response, job_name)
+            res = cls._build_success_response(response, job_name)
         except HTTPError as e:
             if e.response.status_code in [401, 403]:
                 res = ({"message": 'Authentication failed'}, response.status_code)
@@ -43,7 +43,7 @@ class BaseView(Resource):
         return res
 
     @classmethod
-    def _build_response(cls, response, job_name):
+    def _build_success_response(cls, response, job_name):
         raise NotImplementedError
 
 
@@ -67,12 +67,12 @@ class TriggerBuildView(BaseView):
         jenkins = Jenkins(username, token)
         response = jenkins.build_job(job_name, parameters)
 
-        response = cls._try_build_response(response, job_name)
+        response = cls._build_response(response, job_name)
 
         return response
 
     @classmethod
-    def _build_response(cls, response, job_name):
+    def _build_success_response(cls, response, job_name):
         res = ({"job_name": job_name, "status": "SUBMITTED"}, response.status_code)
         return res
 
@@ -87,11 +87,11 @@ class FetchBuildStatusView(BaseView):
 
         jenkins = Jenkins(username, token)
         response = jenkins.job_info(job_name)
-        response = cls._try_build_response(response, job_name)
+        response = cls._build_response(response, job_name)
         return response
 
     @classmethod
-    def _build_response(cls, response, job_name):
+    def _build_success_response(cls, response, job_name):
         content = json.loads(response.text)
         status = content['result']
         status = status or "RUNNING"
