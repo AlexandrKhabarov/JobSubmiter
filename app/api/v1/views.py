@@ -30,7 +30,7 @@ class BaseView(Resource):
             if e.response.status_code in [401, 403]:
                 res = ({"message": 'Authentication failed'}, response.status_code)
             elif e.response.status_code == 404:
-                res = ({"message": 'Requested job could not be found'}, response.status_code)
+                res = ({"message": f'Could not find job: {job_name}'}, response.status_code)
             elif e.response.status_code >= 500:
                 res = ({"message": 'Something went wrong with Jenkins'}, response.status_code)
             else:

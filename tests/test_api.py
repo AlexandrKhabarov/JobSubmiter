@@ -183,7 +183,7 @@ class TestStatusApi(TestApi):
         job_name = "not_found_error_job"
         response = self.open_with_authorization(path=f"/api/v1/status/{job_name}")
         expected_status_code = 404
-        expected_message = {"message": 'Requested job could not be found'}
+        expected_message = {"message": f'Could not find job: {job_name}'}
         self._assert_response(response, expected_status_code, expected_message)
 
     @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
