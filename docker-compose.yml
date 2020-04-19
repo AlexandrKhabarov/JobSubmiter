@@ -9,7 +9,9 @@ services:
     environment:
       JENKINS_HOST: http://jenkins:8080
     volumes:
-      - ./logs:/projects/logs
+      - type: bind
+        source: ./logs
+        target: /project/logs
 
   jenkins:
     container_name: jenkins
