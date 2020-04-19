@@ -14,4 +14,4 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-CMD ./run.sh
+CMD gunicorn -c config/gunicorn.conf run_prod:app

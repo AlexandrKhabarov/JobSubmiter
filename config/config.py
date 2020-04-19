@@ -42,4 +42,4 @@ class ProductionConfig(CommonMode):
     def __init__(self):
         super().__init__()
         self.DEBUG = False
-        self.SECRET_KEY = "secret_key"
+        self.SECRET_KEY = os.urandom(16)
