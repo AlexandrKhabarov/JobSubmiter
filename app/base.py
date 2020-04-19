@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 
 from app.api.v1.urls import blueprint
 from app.utils.jenkins import Jenkins
@@ -21,6 +21,13 @@ def create_config(mode):
 
 def create_app(config):
     app = Flask(__name__)
+
+    @app.errorhandler(404)
+    def not_found(e):
+        response = jsonify({'message': 'Invalid URL'})
+        response.status_code = 404
+        return response
+
     app.register_blueprint(blueprint, url_prefix="/api/v1")
     app.config.from_object(config)
     return app

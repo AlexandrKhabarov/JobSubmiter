@@ -49,8 +49,8 @@ class BaseView(Resource):
 
 class TriggerBuildView(BaseView):
     parser = RequestParser()
-    parser.add_argument("job_name", type=str, required=True)
-    parser.add_argument("parameters", type=dict, default={})
+    parser.add_argument("job_name", type=str, required=True, help="job_name must be a string")
+    parser.add_argument("parameters", type=dict, default={}, help="parameters must be a dict")
 
     @classmethod
     def post(cls):
