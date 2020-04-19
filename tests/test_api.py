@@ -28,7 +28,15 @@ class MockedJenkins:
         self.username = username
         self.token = token
 
-        self._job_info_responses = {
+        self._expected_responses = {
+            "job": mocked_response_factory({
+                "status_code": 201,
+                "text": '{\n    "message": "SUBMITTED"\n}\n'
+            }),
+            "job_with_parameters": mocked_response_factory({
+                "status_code": 201,
+                "text": '{\n    "message": "SUBMITTED"\n}\n'
+            }),
             "success_job": mocked_response_factory({
                 "status_code": 200,
                 "text": '{\n    "result": "SUCCESS"\n}\n'
@@ -81,24 +89,17 @@ class MockedJenkins:
                 "status_code": 200,
                 "text": '{\n    "status": "RUNNING"\n}\n'
             }),
-        }
-
-        self._build_responses = {
-            "job": mocked_response_factory({
-                "status_code": 201,
-                "text": '{\n    "message": "SUBMITTED"\n}\n'
-            }),
-            "job_with_parameters": mocked_response_factory({
-                "status_code": 201,
-                "text": '{\n    "message": "SUBMITTED"\n}\n'
+            "missing_authorization_job": mocked_response_factory({
+                "status_code": 400,
+                "authorization": None
             }),
         }
 
     def build_job(self, job_name, _):
-        return self._build_responses[job_name]
+        return self._expected_responses[job_name]
 
     def job_info(self, job_name):
-        return self._job_info_responses[job_name]
+        return self._expected_responses[job_name]
 
 
 class TestApi(unittest.TestCase):
@@ -215,4 +216,12 @@ class TestStatusApi(TestApi):
         response = self.open_with_authorization(path=f"/api/v1/status/{job_name}")
         expected_status_code = 500
         expected_message = {"message": f"Could not parse JSON info for job: {job_name}"}
+        self._assert_response(response, expected_status_code, expected_message)
+
+    @patch("app.api.v1.views.Jenkins", new=MockedJenkins)
+    def test_missing_authorization(self):
+        job_name = "missing_authorization_job"
+        response = self.client.get(path=f"/api/v1/status/{job_name}")
+        expected_status_code = 400
+        expected_message = {"message": "The authorization failed because of missing Authorization header"}
         self._assert_response(response, expected_status_code, expected_message)

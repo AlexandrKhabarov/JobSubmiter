@@ -44,6 +44,10 @@ class BuildView(BaseView):
     def post(cls):
         authorization = request.authorization
 
+        if authorization is None:
+            res = ({"message": "The authorization failed because of missing Authorization header"}, 400)
+            return res
+
         username = authorization.username
         token = authorization.password
 
@@ -69,6 +73,10 @@ class StatusView(BaseView):
     @classmethod
     def get(cls, job_name):
         authorization = request.authorization
+
+        if authorization is None:
+            res = ({"message": "The authorization failed because of missing Authorization header"}, 400)
+            return res
 
         username = authorization.username
         token = authorization.password

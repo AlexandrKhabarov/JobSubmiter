@@ -6,7 +6,6 @@ services:
     image: app
     ports:
       - 5010:80
-    depends_on:
     environment:
       JENKINS_HOST: http://jenkins:8080
 
