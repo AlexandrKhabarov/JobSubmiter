@@ -47,7 +47,7 @@ class BaseView(Resource):
         raise NotImplementedError
 
 
-class BuildView(BaseView):
+class TriggerBuildView(BaseView):
     parser = RequestParser()
     parser.add_argument("job_name", type=str, required=True)
     parser.add_argument("parameters", type=dict, default={})
@@ -77,8 +77,7 @@ class BuildView(BaseView):
         return res
 
 
-class StatusView(BaseView):
-
+class FetchBuildStatusView(BaseView):
     @classmethod
     def get(cls, job_name):
         authorization = request.authorization
